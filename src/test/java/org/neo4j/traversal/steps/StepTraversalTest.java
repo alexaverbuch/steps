@@ -25,6 +25,8 @@ import org.neo4j.traversal.steps.Step;
 import org.neo4j.traversal.steps.StepsBuilder;
 import org.neo4j.traversal.steps.execution.StepsUtils;
 
+import static org.neo4j.traversal.steps.Filters.*;
+
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 
@@ -44,7 +46,7 @@ public class StepTraversalTest
         Post
     }
 
-    public static String TEMP_DB_DIR = "tempDir";
+    public static String TEMP_DB_DIR = "tempDb";
     public static GraphDatabaseService db = null;
     public static ExecutionEngine engine = null;
     public static StepsBuilder stepsBuilder = null;
@@ -73,7 +75,7 @@ public class StepTraversalTest
 
         TraversalDescription td = stepsBuilder.build( baseTraversalDescription,
         // Steps
-                Step.one( Filters.node().hasLabel( Labels.Post ) ) );
+                Step.one( node().hasLabel( Labels.Post ) ) );
 
         Map<Integer, Integer> expectedPathLengthCounts = new HashMap<Integer, Integer>();
         expectedPathLengthCounts.put( 0, 1 );
@@ -87,7 +89,7 @@ public class StepTraversalTest
 
         TraversalDescription td = stepsBuilder.build( baseTraversalDescription,
         // Steps
-                Step.one( Filters.node().hasLabel( Labels.Comment ) ) );
+                Step.one( node().hasLabel( Labels.Comment ) ) );
 
         Map<Integer, Integer> expectedPathLengthCounts = new HashMap<Integer, Integer>();
         assertThatExpectedNumberAndLengthOfPathsAreDiscovered( db, startNodeId, td, expectedPathLengthCounts );
@@ -98,11 +100,12 @@ public class StepTraversalTest
     {
         long startNodeId = createGraph( "CREATE (comment:Comment)-[:REPLY_OF]->(:Post)\n" + "RETURN id(comment) AS id" );
 
-        TraversalDescription td = stepsBuilder.build( baseTraversalDescription,
+        TraversalDescription td = stepsBuilder.build(
+                baseTraversalDescription,
                 // Steps
-                Step.one( Filters.node().hasLabel( Labels.Comment ),
-                        Filters.relationship().hasType( RelTypes.REPLY_OF ).hasDirection( Direction.OUTGOING ) ),
-                Step.one( Filters.node().hasLabel( Labels.Post ) ) );
+                Step.one( node().hasLabel( Labels.Comment ),
+                        relationship().hasType( RelTypes.REPLY_OF ).hasDirection( Direction.OUTGOING ) ),
+                Step.one( node().hasLabel( Labels.Post ) ) );
 
         Map<Integer, Integer> expectedPathLengthCounts = new HashMap<Integer, Integer>();
         expectedPathLengthCounts.put( 1, 1 );
@@ -114,11 +117,12 @@ public class StepTraversalTest
     {
         long startNodeId = createGraph( "CREATE (comment:Comment)-[:REPLY_OF]->(:Post)\n" + "RETURN id(comment) AS id" );
 
-        TraversalDescription td = stepsBuilder.build( baseTraversalDescription,
+        TraversalDescription td = stepsBuilder.build(
+                baseTraversalDescription,
                 // Steps
-                Step.one( Filters.node().hasLabel( Labels.Comment ),
-                        Filters.relationship().hasType( RelTypes.REPLY_OF ).hasDirection( Direction.OUTGOING ) ),
-                Step.one( Filters.node().hasLabel( Labels.Comment ) ) );
+                Step.one( node().hasLabel( Labels.Comment ),
+                        relationship().hasType( RelTypes.REPLY_OF ).hasDirection( Direction.OUTGOING ) ),
+                Step.one( node().hasLabel( Labels.Comment ) ) );
 
         Map<Integer, Integer> expectedPathLengthCounts = new HashMap<Integer, Integer>();
         assertThatExpectedNumberAndLengthOfPathsAreDiscovered( db, startNodeId, td, expectedPathLengthCounts );
@@ -130,12 +134,11 @@ public class StepTraversalTest
         long startNodeId = createGraph( "CREATE (comment:Comment)-[:REPLY_OF]->(:Comment)-[:REPLY_OF]->(:Post)\n"
                                         + "RETURN id(comment) AS id" );
 
-        TraversalDescription td = stepsBuilder.build(
-                baseTraversalDescription,
+        TraversalDescription td = stepsBuilder.build( baseTraversalDescription,
                 // Steps
-                Step.manyExact( Filters.node().hasLabel( Labels.Comment ),
-                        Filters.relationship().hasType( RelTypes.REPLY_OF ).hasDirection( Direction.OUTGOING ), 1 ),
-                Step.one( Filters.node().hasLabel( Labels.Post ) ) );
+                Step.manyExact( node().hasLabel( Labels.Comment ),
+                        relationship().hasType( RelTypes.REPLY_OF ).hasDirection( Direction.OUTGOING ), 1 ),
+                Step.one( node().hasLabel( Labels.Post ) ) );
 
         Map<Integer, Integer> expectedPathLengthCounts = new HashMap<Integer, Integer>();
         expectedPathLengthCounts.put( 2, 1 );
@@ -148,12 +151,11 @@ public class StepTraversalTest
         long startNodeId = createGraph( "CREATE (comment:Comment)-[:REPLY_OF]->(:Comment)-[:REPLY_OF]->(:Post)\n"
                                         + "RETURN id(comment) AS id" );
 
-        TraversalDescription td = stepsBuilder.build(
-                baseTraversalDescription,
+        TraversalDescription td = stepsBuilder.build( baseTraversalDescription,
                 // Steps
-                Step.manyExact( Filters.node().hasLabel( Labels.Comment ),
-                        Filters.relationship().hasType( RelTypes.REPLY_OF ).hasDirection( Direction.OUTGOING ), 2 ),
-                Step.one( Filters.node().hasLabel( Labels.Comment ) ) );
+                Step.manyExact( node().hasLabel( Labels.Comment ),
+                        relationship().hasType( RelTypes.REPLY_OF ).hasDirection( Direction.OUTGOING ), 2 ),
+                Step.one( node().hasLabel( Labels.Comment ) ) );
 
         Map<Integer, Integer> expectedPathLengthCounts = new HashMap<Integer, Integer>();
         assertThatExpectedNumberAndLengthOfPathsAreDiscovered( db, startNodeId, td, expectedPathLengthCounts );
@@ -167,8 +169,8 @@ public class StepTraversalTest
 
         TraversalDescription td = stepsBuilder.build( baseTraversalDescription,
         // Steps
-                Step.manyRange( Filters.node().hasLabel( Labels.Comment ),
-                        Filters.relationship().hasType( RelTypes.REPLY_OF ).hasDirection( Direction.OUTGOING ), 0,
+                Step.manyRange( node().hasLabel( Labels.Comment ),
+                        relationship().hasType( RelTypes.REPLY_OF ).hasDirection( Direction.OUTGOING ), 0,
                         Step.UNLIMITED ) );
 
         Map<Integer, Integer> expectedPathLengthCounts = new HashMap<Integer, Integer>();
@@ -187,8 +189,8 @@ public class StepTraversalTest
 
         TraversalDescription td = stepsBuilder.build( baseTraversalDescription,
         // Steps
-                Step.manyRange( Filters.node().hasLabel( Labels.Post ),
-                        Filters.relationship().hasType( RelTypes.REPLY_OF ).hasDirection( Direction.OUTGOING ), 0,
+                Step.manyRange( node().hasLabel( Labels.Post ),
+                        relationship().hasType( RelTypes.REPLY_OF ).hasDirection( Direction.OUTGOING ), 0,
                         Step.UNLIMITED ) );
 
         Map<Integer, Integer> expectedPathLengthCounts = new HashMap<Integer, Integer>();
@@ -202,12 +204,11 @@ public class StepTraversalTest
                                         + "(comment)-[:REPLY_OF]->(:Comment)-[:REPLY_OF]->(:Post)"
                                         + "RETURN id(comment) AS id" );
 
-        TraversalDescription td = stepsBuilder.build(
-                baseTraversalDescription,
+        TraversalDescription td = stepsBuilder.build( baseTraversalDescription,
                 // Steps
-                Step.manyRange( Filters.node().hasLabel( Labels.Comment ),
-                        Filters.relationship().hasType( RelTypes.REPLY_OF ).hasDirection( Direction.OUTGOING ), 1, 2 ),
-                Step.one( Filters.node().hasLabel( Labels.Post ) ) );
+                Step.manyRange( node().hasLabel( Labels.Comment ),
+                        relationship().hasType( RelTypes.REPLY_OF ).hasDirection( Direction.OUTGOING ), 1, 2 ),
+                Step.one( node().hasLabel( Labels.Post ) ) );
 
         Map<Integer, Integer> expectedPathLengthCounts = new HashMap<Integer, Integer>();
         expectedPathLengthCounts.put( 2, 1 );
@@ -222,12 +223,11 @@ public class StepTraversalTest
                                         + "(comment)-[:REPLY_OF]->(:Comment)-[:REPLY_OF]->(:Post)"
                                         + "RETURN id(comment) AS id" );
 
-        TraversalDescription td = stepsBuilder.build(
-                baseTraversalDescription,
+        TraversalDescription td = stepsBuilder.build( baseTraversalDescription,
                 // Steps
-                Step.manyRange( Filters.node().hasLabel( Labels.Comment ),
-                        Filters.relationship().hasType( RelTypes.REPLY_OF ).hasDirection( Direction.INCOMING ), 1, 2 ),
-                Step.one( Filters.node().hasLabel( Labels.Post ) ) );
+                Step.manyRange( node().hasLabel( Labels.Comment ),
+                        relationship().hasType( RelTypes.REPLY_OF ).hasDirection( Direction.INCOMING ), 1, 2 ),
+                Step.one( node().hasLabel( Labels.Post ) ) );
 
         Map<Integer, Integer> expectedPathLengthCounts = new HashMap<Integer, Integer>();
         assertThatExpectedNumberAndLengthOfPathsAreDiscovered( db, startNodeId, td, expectedPathLengthCounts );
@@ -241,13 +241,12 @@ public class StepTraversalTest
                                         + "(post1)-[:REPLY_OF]->(:Post)-[:REPLY_OF]->(:Post)-[:REPLY_OF]->(:Post)\n"
                                         + "RETURN id(comment) AS id" );
 
-        TraversalDescription td = stepsBuilder.build(
-                baseTraversalDescription,
+        TraversalDescription td = stepsBuilder.build( baseTraversalDescription,
                 // Steps
-                Step.manyRange( Filters.node().hasLabel( Labels.Comment ),
-                        Filters.relationship().hasType( RelTypes.REPLY_OF ).hasDirection( Direction.OUTGOING ), 0, 1 ),
-                Step.manyRange( Filters.node().hasLabel( Labels.Post ),
-                        Filters.relationship().hasType( RelTypes.REPLY_OF ).hasDirection( Direction.OUTGOING ), 2, 3 ) );
+                Step.manyRange( node().hasLabel( Labels.Comment ),
+                        relationship().hasType( RelTypes.REPLY_OF ).hasDirection( Direction.OUTGOING ), 0, 1 ),
+                Step.manyRange( node().hasLabel( Labels.Post ),
+                        relationship().hasType( RelTypes.REPLY_OF ).hasDirection( Direction.OUTGOING ), 2, 3 ) );
 
         /*
         -------C1---------===============P2============
@@ -260,6 +259,51 @@ public class StepTraversalTest
         Map<Integer, Integer> expectedPathLengthCounts = new HashMap<Integer, Integer>();
         expectedPathLengthCounts.put( 4, 2 );
         expectedPathLengthCounts.put( 5, 2 );
+        assertThatExpectedNumberAndLengthOfPathsAreDiscovered( db, startNodeId, td, expectedPathLengthCounts );
+    }
+
+    @Test
+    public void complexExample()
+    {
+        long startNodeId = createGraph(
+
+        "CREATE (comment:Comment)-[:REPLY_OF]->(:Comment {content : 'hi'})-[:REPLY_OF]->(:Post)-[:REPLY_OF]->(post:Post),\n"
+
+        + "(post)-[:REPLY_OF]->(:Post {title : 'non-things'})-[:REPLY_OF]->(:Post),\n"
+
+        + "(post)-[:REPLY_OF]->(:Post {title : 'things'})-[:REPLY_OF]->(:Post)-[:REPLY_OF]->(:Post)\n"
+
+        + "RETURN id(comment) AS id" );
+
+        TraversalDescription td = stepsBuilder.build( baseTraversalDescription,
+        // Steps
+                Step.one( node().hasLabel( Labels.Comment ),
+                        relationship().hasType( RelTypes.REPLY_OF ).hasDirection( Direction.OUTGOING ) ),
+
+                Step.one( node().hasLabel( Labels.Comment ).propertyEquals( "content", "hi" ),
+                        relationship().hasType( RelTypes.REPLY_OF ).hasDirection( Direction.OUTGOING ) ),
+
+                Step.manyExact( node().hasLabel( Labels.Post ),
+                        relationship().hasType( RelTypes.REPLY_OF ).hasDirection( Direction.OUTGOING ), 1 ),
+
+                Step.one( node().hasLabel( Labels.Post ).propertyEquals( "title", "things" ),
+                        relationship().hasType( RelTypes.REPLY_OF ).hasDirection( Direction.OUTGOING ) ),
+
+                Step.manyRange( node().hasLabel( Labels.Post ),
+                        relationship().hasType( RelTypes.REPLY_OF ).hasDirection( Direction.OUTGOING ), 0,
+                        Step.UNLIMITED ) );
+
+        Map<Integer, Integer> expectedPathLengthCounts = new HashMap<Integer, Integer>();
+        /*
+        (comment:Comment)-[:REPLY_OF]->(:Comment {content : 'hi'})-[:REPLY_OF]->(:Post)-[:REPLY_OF]->(post:Post)
+        (post)-[:REPLY_OF]->(:Post {title : 'things'})-[:REPLY_OF]->(:Post)
+         */
+        expectedPathLengthCounts.put( 5, 1 );
+        /*
+        (comment:Comment)-[:REPLY_OF]->(:Comment {content : 'hi'})-[:REPLY_OF]->(:Post)-[:REPLY_OF]->(post:Post)
+        (post)-[:REPLY_OF]->(:Post {title : 'things'})-[:REPLY_OF]->(:Post)-[:REPLY_OF]->(:Post)
+         */
+        expectedPathLengthCounts.put( 6, 1 );
         assertThatExpectedNumberAndLengthOfPathsAreDiscovered( db, startNodeId, td, expectedPathLengthCounts );
     }
 
