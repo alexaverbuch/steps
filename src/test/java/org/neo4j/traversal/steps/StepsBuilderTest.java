@@ -14,9 +14,13 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Uniqueness;
 import org.neo4j.kernel.impl.util.FileUtils;
+import org.neo4j.traversal.steps.Filters;
+import org.neo4j.traversal.steps.Step;
+import org.neo4j.traversal.steps.StepsBuilder;
 import org.neo4j.traversal.steps.StepTraversalTest.Labels;
 import org.neo4j.traversal.steps.exception.StepsException;
 import org.neo4j.traversal.steps.exception.StepsExceptionType;
+
 
 public class StepsBuilderTest
 {

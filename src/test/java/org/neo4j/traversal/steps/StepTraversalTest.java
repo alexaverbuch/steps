@@ -25,12 +25,12 @@ import org.neo4j.traversal.steps.Step;
 import org.neo4j.traversal.steps.StepsBuilder;
 import org.neo4j.traversal.steps.execution.StepsUtils;
 
-import static org.neo4j.traversal.steps.Filters.*;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 
 import static org.junit.Assert.*;
+import static org.neo4j.traversal.steps.Filters.*;
 import static org.hamcrest.CoreMatchers.*;
 
 public class StepTraversalTest

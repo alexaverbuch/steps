@@ -18,8 +18,8 @@ import org.neo4j.traversal.steps.execution.PredicateGroup;
 import org.neo4j.traversal.steps.execution.StepEvaluationResult;
 import org.neo4j.traversal.steps.execution.StepState;
 import org.neo4j.traversal.steps.execution.StepsEvaluator;
-import org.neo4j.traversal.steps.execution.StepsEvaluator.StepEvaluator;
 import org.neo4j.traversal.steps.execution.StepsExpander;
+import org.neo4j.traversal.steps.execution.StepsEvaluator.StepEvaluator;
 import org.neo4j.traversal.steps.execution.StepsExpander.StepExpander;
 
 import com.google.common.base.Function;
