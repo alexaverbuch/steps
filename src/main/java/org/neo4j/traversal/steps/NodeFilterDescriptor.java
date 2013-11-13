@@ -9,15 +9,15 @@ import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 
-public class NodeFilterDescriptor implements PropertyContainerFilterDescriptor<NodeFilterDescriptor>
+public class NodeFilterDescriptor implements PropertyContainerFilterDescriptor<NodeFilterDescriptor, Node>
 {
     private Set<Label> labels = new HashSet<Label>();
 
-    private final PropertyContainerFilterDescriptor<PropertyContainerFilterDescriptorImpl> propertyFilters;
+    private final PropertyContainerFilterDescriptorImpl<Node> propertyFilters;
 
     NodeFilterDescriptor()
     {
-        this.propertyFilters = new PropertyContainerFilterDescriptorImpl();
+        this.propertyFilters = new PropertyContainerFilterDescriptorImpl<Node>();
     }
 
     /**
@@ -40,7 +40,7 @@ public class NodeFilterDescriptor implements PropertyContainerFilterDescriptor<N
     @Override
     public List<PropertyContainerPredicate> getFilterPredicates()
     {
-        List<PropertyContainerPredicate> propertyContainerPredicates = propertyFilters.getFilterPredicates();
+        List<PropertyContainerPredicate> propertyContainerPredicates = new ArrayList<PropertyContainerPredicate>();
         List<PropertyContainerPredicate> nodePredicates = new ArrayList<PropertyContainerPredicate>();
         if ( false == labels.isEmpty() )
         {
@@ -60,15 +60,16 @@ public class NodeFilterDescriptor implements PropertyContainerFilterDescriptor<N
             } );
         }
         propertyContainerPredicates.addAll( nodePredicates );
+        propertyContainerPredicates.addAll( propertyFilters.getFilterPredicates() );
         return propertyContainerPredicates;
     }
 
     @Override
     public String toString()
     {
-        return "NodeFilterDescriptor [propertyKeys=" + propertyKeys() + ", propertyValues=" + propertyValues()
-               + ", genericChecks=" + genericChecks() + ", labels=" + labels + ", predicates="
-               + getFilterPredicates().toString() + "]";
+        return "NodeFilterDescriptor [propertyKeys=" + propertyFilters.propertyKeys() + ", propertyValues="
+               + propertyFilters.propertyValues() + ", genericChecks=" + propertyFilters.genericChecks() + ", labels="
+               + labels + ", predicates=" + getFilterPredicates().toString() + "]";
     }
 
     @Override
@@ -79,12 +80,6 @@ public class NodeFilterDescriptor implements PropertyContainerFilterDescriptor<N
     }
 
     @Override
-    public Set<String> propertyKeys()
-    {
-        return propertyFilters.propertyKeys();
-    }
-
-    @Override
     public NodeFilterDescriptor propertyEquals( String propertyKey, Object propertyValue )
     {
         propertyFilters.propertyEquals( propertyKey, propertyValue );
@@ -92,9 +87,10 @@ public class NodeFilterDescriptor implements PropertyContainerFilterDescriptor<N
     }
 
     @Override
-    public Set<PropertyValue> propertyValues()
+    public NodeFilterDescriptor propertyNotEquals( String propertyKey, Object propertyValue )
     {
-        return propertyFilters.propertyValues();
+        propertyFilters.propertyNotEquals( propertyKey, propertyValue );
+        return this;
     }
 
     @Override
@@ -105,34 +101,16 @@ public class NodeFilterDescriptor implements PropertyContainerFilterDescriptor<N
     }
 
     @Override
-    public Set<PropertyContainerPredicate> genericChecks()
-    {
-        return propertyFilters.genericChecks();
-    }
-
-    @Override
-    public NodeFilterDescriptor inSet( Set<? extends PropertyContainer> set )
+    public NodeFilterDescriptor inSet( Set<Node> set )
     {
         propertyFilters.inSet( set );
         return this;
     }
 
     @Override
-    public Set<Set<? extends PropertyContainer>> inSets()
-    {
-        return propertyFilters.inSets();
-    }
-
-    @Override
-    public NodeFilterDescriptor notInSet( Set<? extends PropertyContainer> set )
+    public NodeFilterDescriptor notInSet( Set<Node> set )
     {
         propertyFilters.notInSet( set );
         return this;
-    }
-
-    @Override
-    public Set<Set<? extends PropertyContainer>> notInSets()
-    {
-        return propertyFilters.notInSets();
     }
 }

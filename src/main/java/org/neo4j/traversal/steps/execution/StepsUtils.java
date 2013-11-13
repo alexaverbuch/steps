@@ -81,6 +81,25 @@ public class StepsUtils
         return Iterators.filter( withDupicates, distinctFun );
     }
 
+    public static <THING> Iterator<THING> excluding( Iterable<THING> allThings, THING... thingsToExclude )
+    {
+        return excluding( allThings.iterator(), thingsToExclude );
+    }
+
+    public static <THING> Iterator<THING> excluding( Iterator<THING> allThings, THING... thingsToExclude )
+    {
+        final Set<THING> excludeSet = Sets.newHashSet( thingsToExclude );
+        Predicate<THING> excludeFun = new Predicate<THING>()
+        {
+            @Override
+            public boolean apply( THING thing )
+            {
+                return false == excludeSet.contains( thing );
+            }
+        };
+        return Iterators.filter( allThings, excludeFun );
+    }
+
     public static String pathString( Path path )
     {
         StringBuilder sb = new StringBuilder();

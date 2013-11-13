@@ -7,22 +7,21 @@ import java.util.Set;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 
 import com.google.common.base.Function;
 
-public class RelationshipFilterDescriptor implements PropertyContainerFilterDescriptor<RelationshipFilterDescriptor>,
-        CanExpand
+public class RelationshipFilterDescriptor implements
+        PropertyContainerFilterDescriptor<RelationshipFilterDescriptor, Relationship>, CanExpand
 {
     private Set<RelationshipType> relationshipTypes = new HashSet<RelationshipType>();
     private Direction direction = Direction.BOTH;
-    private final PropertyContainerFilterDescriptor<PropertyContainerFilterDescriptorImpl> propertyFilters;
+    private final PropertyContainerFilterDescriptorImpl<Relationship> propertyFilters;
 
     RelationshipFilterDescriptor()
     {
-        this.propertyFilters = new PropertyContainerFilterDescriptorImpl();
+        this.propertyFilters = new PropertyContainerFilterDescriptorImpl<Relationship>();
     }
 
     /**
@@ -87,9 +86,10 @@ public class RelationshipFilterDescriptor implements PropertyContainerFilterDesc
     @Override
     public String toString()
     {
-        return "RelationshipFilterDescriptor [hasPropertyKeys=" + propertyKeys() + ", propertyValues="
-               + propertyValues() + ", genericChecks=" + genericChecks() + ", relationshipTypes=" + relationshipTypes
-               + ", direction=" + direction + ", predicates=" + getFilterPredicates().toString() + "]";
+        return "RelationshipFilterDescriptor [hasPropertyKeys=" + propertyFilters.propertyKeys() + ", propertyValues="
+               + propertyFilters.propertyValues() + ", genericChecks=" + propertyFilters.genericChecks()
+               + ", relationshipTypes=" + relationshipTypes + ", direction=" + direction + ", predicates="
+               + getFilterPredicates().toString() + "]";
     }
 
     @Override
@@ -106,12 +106,6 @@ public class RelationshipFilterDescriptor implements PropertyContainerFilterDesc
     }
 
     @Override
-    public Set<String> propertyKeys()
-    {
-        return propertyFilters.propertyKeys();
-    }
-
-    @Override
     public RelationshipFilterDescriptor propertyEquals( String propertyKey, Object propertyValue )
     {
         propertyFilters.propertyEquals( propertyKey, propertyValue );
@@ -119,9 +113,10 @@ public class RelationshipFilterDescriptor implements PropertyContainerFilterDesc
     }
 
     @Override
-    public Set<PropertyValue> propertyValues()
+    public RelationshipFilterDescriptor propertyNotEquals( String propertyKey, Object propertyValue )
     {
-        return propertyFilters.propertyValues();
+        propertyFilters.propertyNotEquals( propertyKey, propertyValue );
+        return this;
     }
 
     @Override
@@ -132,34 +127,16 @@ public class RelationshipFilterDescriptor implements PropertyContainerFilterDesc
     }
 
     @Override
-    public Set<PropertyContainerPredicate> genericChecks()
-    {
-        return propertyFilters.genericChecks();
-    }
-
-    @Override
-    public RelationshipFilterDescriptor inSet( Set<? extends PropertyContainer> set )
+    public RelationshipFilterDescriptor inSet( Set<Relationship> set )
     {
         propertyFilters.inSet( set );
         return this;
     }
 
     @Override
-    public Set<Set<? extends PropertyContainer>> inSets()
-    {
-        return propertyFilters.inSets();
-    }
-
-    @Override
-    public RelationshipFilterDescriptor notInSet( Set<? extends PropertyContainer> set )
+    public RelationshipFilterDescriptor notInSet( Set<Relationship> set )
     {
         propertyFilters.notInSet( set );
         return this;
-    }
-
-    @Override
-    public Set<Set<? extends PropertyContainer>> notInSets()
-    {
-        return propertyFilters.notInSets();
     }
 }

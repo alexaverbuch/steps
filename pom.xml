@@ -10,8 +10,8 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.assembly.version>2.2.1</maven.assembly.version>
-		<neo4j-version>2.0.0-M06</neo4j-version>
-		<!-- <neo4j-version>2.0-SNAPSHOT</neo4j-version> -->
+		<!-- <neo4j-version>2.0.0-M06</neo4j-version> -->
+		<neo4j-version>2.0-SNAPSHOT</neo4j-version>
 		<junit-version>4.10</junit-version>
 		<guava-version>15.0</guava-version>
 	</properties>

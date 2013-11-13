@@ -25,7 +25,6 @@ import org.neo4j.traversal.steps.Step;
 import org.neo4j.traversal.steps.StepsBuilder;
 import org.neo4j.traversal.steps.execution.StepsUtils;
 
-
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 
@@ -178,6 +177,24 @@ public class StepTraversalTest
         expectedPathLengthCounts.put( 1, 1 );
         expectedPathLengthCounts.put( 2, 1 );
         expectedPathLengthCounts.put( 3, 1 );
+        assertThatExpectedNumberAndLengthOfPathsAreDiscovered( db, startNodeId, td, expectedPathLengthCounts );
+    }
+
+    @Test
+    public void shouldReturnExpectedResultForBoundedRangePathLengthSuccess()
+    {
+        long startNodeId = createGraph( "CREATE (comment:Comment)-[:REPLY_OF]->(:Comment)-[:REPLY_OF]->(:Comment)-[:REPLY_OF]->(:Comment)\n"
+                                        + "RETURN id(comment) AS id" );
+
+        TraversalDescription td = stepsBuilder.build( baseTraversalDescription,
+        // Steps
+                Step.manyRange( node().hasLabel( Labels.Comment ),
+                        relationship().hasType( RelTypes.REPLY_OF ).hasDirection( Direction.OUTGOING ), 0, 2 ) );
+
+        Map<Integer, Integer> expectedPathLengthCounts = new HashMap<Integer, Integer>();
+        expectedPathLengthCounts.put( 0, 1 );
+        expectedPathLengthCounts.put( 1, 1 );
+        expectedPathLengthCounts.put( 2, 1 );
         assertThatExpectedNumberAndLengthOfPathsAreDiscovered( db, startNodeId, td, expectedPathLengthCounts );
     }
 

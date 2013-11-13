@@ -7,17 +7,19 @@ import java.util.Set;
 
 import org.neo4j.graphdb.PropertyContainer;
 
-class PropertyContainerFilterDescriptorImpl implements
-        PropertyContainerFilterDescriptor<PropertyContainerFilterDescriptorImpl>
+class PropertyContainerFilterDescriptorImpl<PROPERTY_CONTAINER_TYPE extends PropertyContainer>
+        implements
+        PropertyContainerFilterDescriptor<PropertyContainerFilterDescriptorImpl<PROPERTY_CONTAINER_TYPE>, PROPERTY_CONTAINER_TYPE>
 {
     private Set<String> propertyKeys = new HashSet<String>();
     private Set<PropertyValue> propertyValues = new HashSet<PropertyValue>();
+    private Set<PropertyValue> notPropertyValues = new HashSet<PropertyValue>();
     private Set<PropertyContainerPredicate> genericChecks = new HashSet<PropertyContainerPredicate>();
-    private Set<Set<? extends PropertyContainer>> inSets = new HashSet<Set<? extends PropertyContainer>>();
-    private Set<Set<? extends PropertyContainer>> notInSets = new HashSet<Set<? extends PropertyContainer>>();
+    private Set<PROPERTY_CONTAINER_TYPE> inSet = new HashSet<PROPERTY_CONTAINER_TYPE>();
+    private Set<PROPERTY_CONTAINER_TYPE> notInSet = new HashSet<PROPERTY_CONTAINER_TYPE>();
 
     @Override
-    public PropertyContainerFilterDescriptorImpl hasPropertyKey( String propertyKey )
+    public PropertyContainerFilterDescriptorImpl<PROPERTY_CONTAINER_TYPE> hasPropertyKey( String propertyKey )
     {
         propertyKeys.add( propertyKey );
         return this;
@@ -29,55 +31,65 @@ class PropertyContainerFilterDescriptorImpl implements
     }
 
     @Override
-    public PropertyContainerFilterDescriptorImpl propertyEquals( String propertyKey, Object propertyValue )
+    public PropertyContainerFilterDescriptorImpl<PROPERTY_CONTAINER_TYPE> propertyEquals( String propertyKey,
+            Object propertyValue )
     {
         propertyValues.add( new PropertyValue( propertyKey, propertyValue ) );
         return this;
     }
 
-    @Override
-    public Set<PropertyValue> propertyValues()
+    Set<PropertyValue> propertyValues()
     {
         return propertyValues;
     }
 
     @Override
-    public PropertyContainerFilterDescriptorImpl conformsTo( PropertyContainerPredicate check )
+    public PropertyContainerFilterDescriptorImpl<PROPERTY_CONTAINER_TYPE> propertyNotEquals( String propertyKey,
+            Object propertyValue )
+    {
+        notPropertyValues.add( new PropertyValue( propertyKey, propertyValue ) );
+        return this;
+    }
+
+    Set<PropertyValue> notPropertyValues()
+    {
+        return propertyValues;
+    }
+
+    @Override
+    public PropertyContainerFilterDescriptorImpl<PROPERTY_CONTAINER_TYPE> conformsTo( PropertyContainerPredicate check )
     {
         genericChecks.add( check );
         return this;
     }
 
-    @Override
-    public Set<PropertyContainerPredicate> genericChecks()
+    Set<PropertyContainerPredicate> genericChecks()
     {
         return genericChecks;
     }
 
     @Override
-    public PropertyContainerFilterDescriptorImpl inSet( Set<? extends PropertyContainer> set )
+    public PropertyContainerFilterDescriptorImpl<PROPERTY_CONTAINER_TYPE> inSet( Set<PROPERTY_CONTAINER_TYPE> set )
     {
-        inSets.add( set );
+        inSet = set;
         return this;
     }
 
-    @Override
-    public Set<Set<? extends PropertyContainer>> inSets()
+    Set<PROPERTY_CONTAINER_TYPE> inSet()
     {
-        return inSets;
+        return inSet;
     }
 
     @Override
-    public PropertyContainerFilterDescriptorImpl notInSet( Set<? extends PropertyContainer> set )
+    public PropertyContainerFilterDescriptorImpl<PROPERTY_CONTAINER_TYPE> notInSet( Set<PROPERTY_CONTAINER_TYPE> set )
     {
-        notInSets.add( set );
+        notInSet = set;
         return this;
     }
 
-    @Override
-    public Set<Set<? extends PropertyContainer>> notInSets()
+    Set<PROPERTY_CONTAINER_TYPE> notInSet()
     {
-        return notInSets;
+        return notInSet;
     }
 
     @Override
@@ -119,35 +131,86 @@ class PropertyContainerFilterDescriptorImpl implements
                 }
             } );
         }
-        if ( false == inSets.isEmpty() )
+        /*
+         * 
+         */
+        if ( false == notPropertyValues.isEmpty() )
         {
+            final PropertyValue[] notPropertysValuesArray = notPropertyValues.toArray( new PropertyValue[notPropertyValues.size()] );
+
             propertyContainerPredicates.add( new PropertyContainerPredicate()
             {
                 @Override
                 public boolean apply( PropertyContainer propertyContainer )
                 {
-                    for ( Set<? extends PropertyContainer> inSet : inSets )
+                    for ( int i = 0; i < notPropertysValuesArray.length; i++ )
                     {
-                        if ( false == inSet.contains( propertyContainer ) ) return false;
+                        PropertyValue disallowedPropertyValue = notPropertysValuesArray[i];
+                        if ( propertyContainer.getProperty( disallowedPropertyValue.key() ).equals(
+                                disallowedPropertyValue.value() ) ) return false;
                     }
                     return true;
                 }
             } );
         }
-        if ( false == notInSets.isEmpty() )
+        /*
+         * 
+         */
+        if ( false == inSet.isEmpty() )
         {
-            propertyContainerPredicates.add( new PropertyContainerPredicate()
+            PropertyContainerPredicate predicate = null;
+            if ( 1 == inSet.size() )
             {
-                @Override
-                public boolean apply( PropertyContainer propertyContainer )
+                final PROPERTY_CONTAINER_TYPE desiredPropertyContainer = inSet.iterator().next();
+                predicate = new PropertyContainerPredicate()
                 {
-                    for ( Set<? extends PropertyContainer> notInSet : notInSets )
+                    @Override
+                    public boolean apply( PropertyContainer propertyContainer )
                     {
-                        if ( true == notInSet.contains( propertyContainer ) ) return false;
+                        return propertyContainer.equals( desiredPropertyContainer );
                     }
-                    return true;
-                }
-            } );
+                };
+            }
+            else
+            {
+                predicate = new PropertyContainerPredicate()
+                {
+                    @Override
+                    public boolean apply( PropertyContainer propertyContainer )
+                    {
+                        return inSet.contains( propertyContainer );
+                    }
+                };
+            }
+            propertyContainerPredicates.add( predicate );
+        }
+        if ( false == notInSet.isEmpty() )
+        {
+            PropertyContainerPredicate predicate = null;
+            if ( 1 == inSet.size() )
+            {
+                final PROPERTY_CONTAINER_TYPE desiredPropertyContainer = notInSet.iterator().next();
+                predicate = new PropertyContainerPredicate()
+                {
+                    @Override
+                    public boolean apply( PropertyContainer propertyContainer )
+                    {
+                        return false == propertyContainer.equals( desiredPropertyContainer );
+                    }
+                };
+            }
+            else
+            {
+                predicate = new PropertyContainerPredicate()
+                {
+                    @Override
+                    public boolean apply( PropertyContainer propertyContainer )
+                    {
+                        return false == notInSet.contains( propertyContainer );
+                    }
+                };
+            }
+            propertyContainerPredicates.add( predicate );
         }
         propertyContainerPredicates.addAll( genericChecks );
         return propertyContainerPredicates;
